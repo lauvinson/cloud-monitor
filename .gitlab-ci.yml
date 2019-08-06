@@ -1,0 +1,70 @@
+image: ${DOCKER_REGISTRY}/env/jdk8-maven339:latest
+
+variables:
+  PROJECT_GROUP: ${CI_PROJECT_NAMESPACE}
+  PROJECT_NAME: ${CI_PROJECT_NAME}
+  #MAVEN运行时参数, -U:强制检查所有snapshots更新; -B: batch-mode,批处理模式
+  MAVEN_CLI_OPTS: "-U -B -Dspring.profiles.active=ci -Dconfig.server.enabled=false"
+  VERSION: ${CI_BUILD_TAG}
+  BUILD_DIR: /build/${PROJECT_GROUP}/${PROJECT_NAME}/${CI_PIPELINE_ID}
+  RANCHER_URL_TEST_ENV: http://rancher.cluster.gs:8080
+  ACCESS_KEY_TEST_ENV: F5CAF611778CDBFECC2C
+  SECRET_KEY_TEST_ENV: ijVyHub3saBTvp9mReNP4fGXEcFGo7GCudoAAShd
+
+#定义CI阶段
+stages:
+  - test
+  - package
+  - deploy
+
+
+#compile,package,install,deploy
+test:
+  stage: test
+  script:
+    - mvn $MAVEN_CLI_OPTS compile -Dmaven.test.skip=true
+
+
+package:
+  stage: package
+  script:
+    - mvn versions:set -DnewVersion=${CI_BUILD_TAG:-0.0.1-SNAPSHOT}
+    - mvn $MAVEN_CLI_OPTS clean package -Dmaven.test.skip=true
+    - mvn $MAVEN_CLI_OPTS docker:build
+    - mvn $MAVEN_CLI_OPTS docker:push
+  # for test coverage
+#    - '[ -r target/site/jacoco/index.html ] && cat target/site/jacoco/index.html'
+
+
+deploy:test_env:
+  image: ${DOCKER_REGISTRY}/env/rancher-compose:latest
+  stage: deploy
+  script:
+    - export PROJECT_VERSION=${CI_BUILD_TAG:-0.0.1-SNAPSHOT}
+    - cd docker
+    - sed -i 's#${PROJECT_NAME}#'$PROJECT_NAME'#g' docker-compose.yml
+    - rancher-compose --debug --url ${RANCHER_URL_TEST_ENV} --access-key ${ACCESS_KEY_TEST_ENV} --secret-key ${SECRET_KEY_TEST_ENV} -p ${PROJECT_GROUP} up -d --force-upgrade --confirm-upgrade
+  only:
+    - feature_haikang
+    - master
+    - tags
+  environment:
+    name: test
+  dependencies:
+    - package
+
+deploy:prod_env:
+  image: ${DOCKER_REGISTRY}/env/rancher-compose:latest
+  stage: deploy
+  script:
+    - export PROJECT_VERSION=${CI_BUILD_TAG:-0.0.1-SNAPSHOT}
+    - cd docker
+    - sed -i 's#${PROJECT_NAME}#'$PROJECT_NAME'#g' docker-compose.yml
+    - rancher-compose --debug --url ${RANCHER_URL_PROD_ENV} --access-key ${ACCESS_KEY_PROD_ENV} --secret-key ${SECRET_KEY_TEST_ENV} -p ${PROJECT_GROUP} up --pull -d --force-upgrade --confirm-upgrade
+  only:
+    - tags
+  when: manual
+  environment:
+    name: prod
+  dependencies:
+    - package

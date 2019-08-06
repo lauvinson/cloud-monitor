@@ -1,0 +1,12 @@
+${PROJECT_NAME}:
+  labels:
+    io.rancher.container.pull_image: always
+    swagger.enabled: 'true'
+  #    io.rancher.container.start_once: 'false'
+  #    io.rancher.scheduler.affinity:host_label_ne: consul=false
+  tty: true
+  image: "${DOCKER_REGISTRY}/${PROJECT_GROUP}/${PROJECT_NAME}:${PROJECT_VERSION}"
+  stdin_open: true
+  volumes:
+    - /data/logs:/logs
+    - /data/logs/dc:/data/logs/dc

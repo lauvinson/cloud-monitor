@@ -1,0 +1,66 @@
+spring:
+  http:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+  messages:
+    encoding: UTF-8
+  banner:
+    charset: UTF-8
+  cache:
+    type: redis
+  application:
+    name: cloud-monitor
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+  jackson:
+    default-property-inclusion: non_null
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  mvc:
+    date-format: yyyy-MM-dd HH:mm:ss
+  data:
+    mongodb:
+      host: mysql-test.app.gs
+      database: wcb-core
+      userName: test
+      password: test123456
+      port: 27017
+    elasticsearch:
+      cluster-name: applogs
+      cluster-nodes: 172.17.17.100:9300,172.17.17.101:9300,172.17.17.102:9300
+      index: index_face
+      deviceLogIndex: test_devicelogsentity-2019.08
+      deviceLogType: test_devicelogsentity_log
+      serviceLogIndex: test_servicelogsentity-*
+      serviceLogType: test_servicelogsentity_log
+      serverLogIndex: test_serverlogsentity-*
+      serverLogType: test_serverlogsentity_log
+      scoreIndex: test_score-*
+      scoreType: score_type
+      repositories:
+        enabled: true
+config:
+  server:
+    discovery: true
+    username: user
+    password: abc123
+    consul:
+      host: ${HOST_IP:127.0.0.1}
+    enabled: true
+
+kafka:
+  appName: face_detect_test
+  topic: face_detect_test
+
+management:
+  health:
+    elasticsearch:
+      enabled: false
+server:
+  jetty:
+    max-http-post-size: 10MB
+  port: 8080
