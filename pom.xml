@@ -17,7 +17,7 @@
         <docker.image.prefix>docker.source3g.com:5000</docker.image.prefix>
         <fastjson.version>1.2.24</fastjson.version>
         <dollar>$</dollar>
-        <elasticsearch.version>5.5.3</elasticsearch.version>
+        <elasticsearch.version>6.8.15</elasticsearch.version>
         <elasticsearch.client.version>5.5.3</elasticsearch.client.version>
     </properties>
 
